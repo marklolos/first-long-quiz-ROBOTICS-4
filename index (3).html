@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ECEN 453 Robotics – Mock Test by Unit</title>
+<style>
+:root{--bg:#f3f6f4;--card:#fff;--ink:#14231c;--mut:#5a6b62;--line:#cfdad3;--acc:#0f6e56;--ok:#dff3e8;--okb:#1d8f5f;--no:#fbe3e1;--nob:#c2412f}
+@media(prefers-color-scheme:dark){:root{--bg:#0f1713;--card:#18231d;--ink:#e8f1ec;--mut:#9bb0a5;--line:#2c3d34;--acc:#4cc9a0;--ok:#173a29;--okb:#4cc9a0;--no:#3e1f1b;--nob:#ff8a78}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.55 Georgia,serif;padding:env(safe-area-inset-top,0) 0 env(safe-area-inset-bottom,0)}
+main{max-width:700px;margin:0 auto;padding:20px 16px 48px}
+h1{font:700 1.5rem/1.2 "Trebuchet MS",Verdana,sans-serif;margin:8px 0 4px}.sub{color:var(--mut);margin:0 0 16px}
+.track{height:8px;background:var(--line);border-radius:4px;overflow:hidden}#bar{height:100%;width:0;background:var(--acc);transition:width .3s}
+#cnt{font:.9rem "Trebuchet MS",sans-serif;color:var(--mut);margin:8px 0 14px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:18px}
+#q{font-size:1.1rem;font-weight:700;margin:0 0 14px}.pg{font:.85rem "Trebuchet MS",sans-serif;color:var(--acc);margin:0 0 6px}
+button{font:inherit}#opts button,.set{display:block;width:100%;text-align:left;margin:0 0 8px;padding:12px 14px;background:var(--card);color:var(--ink);border:1.5px solid var(--line);border-radius:8px;cursor:pointer}
+.set.on{border-color:var(--acc);background:var(--ok)}.set b{display:block;font-family:"Trebuchet MS",sans-serif}.set span{color:var(--mut);font-size:.9rem}
+#opts button.ok{background:var(--ok);border-color:var(--okb)}#opts button.no{background:var(--no);border-color:var(--nob)}
+#fb{margin-top:12px;padding:12px 14px;border-left:4px solid var(--acc);background:var(--bg);border-radius:4px}
+.go{margin-top:14px;padding:11px 20px;background:var(--acc);color:var(--bg);border:0;border-radius:8px;font:700 1rem "Trebuchet MS",sans-serif;cursor:pointer}.go.alt{background:transparent;color:var(--acc);border:1.5px solid var(--acc);margin-left:8px}
+input,textarea{width:100%;font:inherit;padding:11px 12px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink)}textarea{min-height:130px;font:.9rem Consolas,monospace}
+pre{white-space:pre-wrap;background:var(--bg);padding:10px;border-radius:6px;font:.88rem/1.45 Consolas,monospace}
+</style></head><body><main>
+<h1>Robotics Technology Mock Test</h1>
+<p class="sub">ECEN 453 · Units 0–3 · Based on the reviewer (plus the professor’s 15-item quiz)</p>
+<div class="track"><div id="bar"></div></div><div id="cnt"></div>
+<div class="card"><div id="home"></div>
+<div id="stage" hidden><p class="pg" id="pg"></p><p id="q"></p><div id="opts"></div><div id="fb" hidden></div><button class="go" id="next" hidden>Next</button></div>
+<div id="end" hidden></div></div></main>
+<script>
+// Units: 0 = Orientation/History (pp.2-3) · 1 = Robot concepts, MATLAB, linear algebra (pp.3-11) · 2 = Sensors, vision, Python (pp.12-23) · 3 = Grippers, C, GUI, Arduino, Industrial Rev. (pp.23-30)
+// ID: [unit, question, accepted answers (|), page]
+const ID=[
+[0,"What does SCOT stand for?","shared computer operated transport",3],
+[0,"What does BRAVE stand for?","bomb removal automated vehicle",3],
+[0,"What does SCARA stand for?","selective compliant articulated robot arm",3],
+[0,"What does ASIMO stand for?","advanced step in innovative mobility",3],
+[0,"Who invented the textile machine operated by punch cards?","jacquard|joseph-marie jacquard",2],
+[0,"Who designed the analytical engine, the “world’s first general-purpose computer”?","babbage|charles babbage",2],
+[0,"Whose mathematical analysis of logic became Boolean Algebra?","boole|george boole",2],
+[0,"Who invented the talking doll in 1887?","edison|thomas edison",2],
+[0,"Who designed a motorized crane with a gripper to remove ingots from a furnace (1892)?","babbitt|seward babbitt",2],
+[0,"Which NASA Mars rover was the first deployed on Mars?","sojourner",3],
+[0,"Which NASA Mars rover is noted as the one that got stuck on Mars?","spirit",3],
+[0,"Besides Sojourner, Curiosity, Perseverance and Spirit, what is the fifth NASA Mars rover listed in the reviewer?","opportunity",3],
+[0,"Who is the MIT professor who published the book Cybernetics (1948)?","wiener|norbert wiener",3],
+[0,"Who created the first microchip in 1958?","kilby|jack kilby",3],
+[0,"Who coined “data mining” (“data is the new oil”)?","humby|clive humby",3],
+[0,"Which Czech writer introduced the word “robot” in 1921?","capek|karel capek|čapek|karel čapek",3],
+[0,"What is the world’s first anthropomorphic robot, created at Waseda University?","wabot-1|wabot1|wabot",3],
+[1,"What does DOF stand for?","degrees of freedom|degree of freedom",4],
+[1,"Who first introduced the term “robotics” in 1941?","asimov|isaac asimov",3],
+[1,"Which wrist motion moves the wrist side to side?","yaw",4],
+[1,"What do you call the smallest incremental movement a robot can detect or execute?","resolution",4],
+[1,"Which class of robots memorizes and records motion paths and repeats them without further guidance?","playback|playback robots",4],
+[1,"What does MATLAB stand for?","matrix laboratory",5],
+[1,"Which MATLAB command clears the Command Window without removing variables?","clc",5],
+[1,"Which MATLAB predefined variable is the smallest difference (≈ 2.2204e-16)?","eps",6],
+[1,"Which MATLAB rounding function rounds toward zero?","fix|fix(x)",6],
+[1,"Which kind of substitution solves a lower triangular system?","forward|forward substitution",11],
+[1,"Which direct method reduces the system to diagonal form?","gauss-jordan|gauss jordan",10],
+[1,"What do you call the sum of the main-diagonal elements of a matrix?","trace",9],
+[2,"What does LDR stand for?","light dependent resistor",12],
+[2,"Which type of sensor requires an external power source for operation?","passive|passive sensor|passive sensors",12],
+[2,"What is the unit of illuminance?","lux|lx",12],
+[2,"What is the approximate angle of the main cone of an ultrasonic sensor’s radiation pattern (in degrees)?","5|5°|5 degrees",15],
+[2,"What is the dielectric constant of water in the reviewer’s table?","80",14],
+[2,"Which ultrasonic operating mode is the standard mode of operation?","diffuse|diffuse mode",17],
+[2,"What does API stand for? (Keras is a high-level one)","application programming interface",22],
+[2,"Who created Python?","guido van rossum|van rossum",20],
+[2,"What does SPYDER stand for? (Scientific ___ Development EnviRonment)","scientific python development environment|python",21],
+[2,"What does the Python library NumPy stand for?","numerical python",21],
+[2,"Which Python library is for data analysis and manipulation with DataFrames?","pandas",23],
+[2,"What is machine vision also called?","industrial vision|vision systems|vision system",19],
+[3,"How many digital I/O pins does the Arduino Nano have?","22",27],
+[3,"How many digital I/O pins does the Arduino Uno have?","14",27],
+[3,"How many digital I/O pins does the Arduino Mega 2560 have?","54",27],
+[3,"How many analog inputs does the Arduino Mega have?","16",27],
+[3,"Which Arduino board was the first with built-in USB communication in its microcontroller?","leonardo|arduino leonardo",28],
+[3,"Which Arduino function runs only once at startup or after a reset?","setup|setup()",28],
+[3,"What does GCC stand for?","gnu compiler collection",24],
+[3,"What does GUIDE stand for in MATLAB?","graphical user interface development environment",26],
+[3,"What does UNIX stand for?","uniplexed information computing system|uniplexed information and computing system",24],
+[3,"Who created the C programming language?","ritchie|dennis ritchie",24],
+[3,"Who coined IoT in 1999?","ashton|kevin ashton",30]
+];
+// MC: [unit, question, options, correct index, page]
+const MC=[
+[0,"Which became the first privately owned company to dock a robotic capsule with the ISS (2012)?",["SpaceX","NASA","Honda","Waseda"],0,3],
+[0,"Which was the world’s first anthropomorphic robot?",["ASIMO","WABOT-1","P2","Unimate"],1,3],
+[0,"In statistics, X is called a ___; in AI it is called a feature.",["response","target","predictor","label"],2,2],
+[0,"In a binary image, a white pixel represents the ___.",["background","object","noise","edge"],1,2],
+[0,"ASIMO was developed using lessons from which Honda robots?",["WABOT-1 and 2","P2 and P3","Unimate","SCOT"],1,3],
+[1,"Which robot type is equipped with visual/tactile sensors and controlled by powerful computers?",["Playback","Fixed sequence","Intelligent (sensory)","Positive stop"],2,4],
+[1,"Which robot component acts as the “muscles”?",["Sensors","Actuators","Controller","Communicator"],1,4],
+[1,"Matrix multiplication is valid when ___.",["both are square","columns of left = rows of right","rows are equal","same dimensions"],1,9],
+[1,"Which robot works in three linear directions only?",["Cylindrical","Spherical","Rectilinear/Cartesian","Fully articulated"],2,4],
+[1,"Which is NOT a valid MATLAB variable name rule?",["Begins with a letter","Up to 63 characters","Case-sensitive","May contain spaces"],3,6],
+[2,"Active sensors differ from passive sensors because they ___.",["need no power","generate and transmit a signal","only measure light","are inductive"],1,13],
+[2,"Which material is easiest for a capacitive sensor to detect?",["Teflon","Wood","Water","Air"],2,14],
+[2,"Maximum angular deviation from a flat surface for an ultrasonic sensor:",["±1°","±3°","±5°","±45°"],1,16],
+[2,"Which mode uses a reflector in the preset operating range?",["Diffuse","Reflex","Thru-beam","Blanking"],1,17],
+[2,"Which framework is described as having dynamic computation graphs?",["TensorFlow","Keras","PyTorch","Pandas"],2,23],
+[3,"Which gripper drive suits large robots handling heavy loads?",["Pneumatic","Electric","Hydraulic","Vacuum"],2,23],
+[3,"Which gripper’s pivot acts as an over-center toggle lock?",["Parallel","Angular","Toggle","Internal"],2,23],
+[3,"How many UARTs does the Arduino Mega have?",["1","2","4","8"],2,27],
+[3,"Which C format specifier is used for floating-point values?",["%d","%f","%c","%i"],1,25],
+[3,"Which function runs repeatedly in an infinite cycle in an Arduino sketch?",["setup()","main()","loop()","begin()"],2,28]
+];
+// TF: [unit, statement, true?, explanation, page]
+const TF=[
+[0,"Isaac Asimov published the short story “Runaround” and formulated the Three Laws of Robotics.",true,"",3],
+[0,"Jacquard’s textile machine was operated by punch cards.",true,"",2],
+[0,"Charles Babbage did the mathematical analysis of logic that became Boolean Algebra.",false,"That was George Boole.",2],
+[0,"SCARA has 4 axes.",true,"",3],
+[0,"Spirit was the first rover deployed on Mars.",false,"Sojourner was first; Spirit is the one that got stuck.",3],
+[1,"The number of possible locations is P = 2ⁿ, where n is the degrees of freedom.",true,"",4],
+[1,"Cramer’s Rule is best for large systems.",false,"Best for small systems (2×2 or 3×3).",8],
+[1,"MATLAB variable names are case-sensitive.",true,"",6],
+[1,"An upper triangular system is solved by forward substitution.",false,"Back substitution; forward is for lower triangular.",10],
+[1,"The identity matrix is a diagonal matrix with 1’s on the main diagonal.",true,"",9],
+[2,"Capacitive proximity sensors can only detect metals.",false,"They also sense paper, glass, liquids, cloth.",13],
+[2,"Ultrasonic sensors will not operate in a vacuum.",true,"",17],
+[2,"Python was created by Guido van Rossum and released in 1991.",true,"",20],
+[2,"Sound velocity decreases as humidity increases.",false,"It increases, giving the impression of a shorter distance.",17],
+[2,"Machine vision can operate beyond human vision.",true,"",19],
+[3,"C++ supports object-oriented programming, whereas C is procedural.",true,"",24],
+[3,"printf() automatically adds a newline at the end of its output.",false,"It does not.",25],
+[3,"In GUIDE, the .fig file holds the layout and the .m file holds the code.",true,"",26],
+[3,"Industrial Revolution 3.0 includes electronics, IC, automation and the internet.",true,"",30],
+[3,"Raspberry Pi handles low-level tasks while Arduino powers high-level robotics.",false,"Reversed: Arduino = low-level, Raspberry Pi = high-level.",27]
+];
+// Professor’s 15-item quiz (from your screenshots; several items are NOT in the reviewer)
+const PQ=[
+["A user-program that has the ability to move a robot axis to any position within its range",["Pick-to-place","Point-to-point","Positive stop","Continuous path"],1],
+["______ a professor at MIT publishes Cybernetics, a book describing communications and control in electronic, mechanical and biological systems.",["Williard Polard","Seward Babbit","John Mauchly","Norbert Wiener"],3],
+["______ is a type of actuator of industrial robots with great force capability and great holding strength when stopped.",["Pneumatic","Steam","Hydraulic","Electric"],2],
+["The individual sections of the robot arm between the joints are ____.",["Arms","Branches","Links","Axes"],2],
+["The first patent for an industrial robot was developed in 1954 by Devol. (True/False)",["TRUE","FALSE"],0],
+["A system in which the precise movement of a large load is controlled by a relatively weak signal.",["Hydraulic","Electro","Synchro","Servo"],3],
+["Which is not the usual power source that steers the arm of the robot?",["Thermionic","Hydraulic","Pneumatic","Electric"],0],
+["What are the basic categories of industrial robot?",["Fast and slow","Mechanical and electrical","Autobots and decepticons","Pick and place manipulator and intelligent robot"],3],
+["A high level computer language developed by Robotronic Corporation to make commanding a personal robot easier.",["Androtext","ARMBASIC","AML","HELP"],0],
+["Describes the wrist’s angular movement from the left side to the right side.",["Pitch","Roll","Rotation","Yaw"],3],
+["Refers to the movement of the base of the robot.",["Actuation","Walk","Travel","Precission"],2],
+["______ is a device connected to the wrist’s flange of the manipulator’s arm, used in many different situations in the production area.",["End effector","Manipulator","Actuator","Controller"],0],
+["______ robot is primarily used for machining processes.",["Cincinatti T3","DEA PRAMA","ADEPT One","Jolly 80"],0],
+["The essential feature of a non-servo controlled robot is that ____",["It requires programming logic controller","Each of its axis can move only between hardware stops","It is small","It is used for heavy loads"],1],
+["Robot classification is usually based on ____",["Its manipulating anatomy","Its controller design","Its suitable for production tasks","All of the above"],3]
+];
+const PR=[
+["Problem 1 · MATLAB: Worker’s Pay (10 pts)","Write a script that asks the user for hours worked and hourly wage. Calculate pay (overtime above 40 hours is paid at 1.5× rate). Display the result.",
+`% workerPay.m
+hours = input('Hours worked: ');
+wage  = input('Hourly wage: ');
+if hours > 40
+    pay = 40*wage + (hours-40)*wage*1.5;
+else
+    pay = hours*wage;
+end
+disp(['Total pay: ', num2str(pay)]);`,"Reviewer p.7 (Challenge 2). Uses input, if/else, disp. Save as .m and run."],
+["Problem 2 · Python: Lists (10 pts)","Given:\npi = 3.14159\nvarList = [1, 2, 3, A, B, 'Hello', pi]\nvarList.append('World')\nprint(varList)\n\n(a) What must be done first so the code runs? (b) If A = 4 and B = 5, what is printed?",
+`# (a) A and B must be defined before the list is built,
+#     otherwise Python raises NameError.
+pi = 3.14159
+A = 4
+B = 5
+varList = [1, 2, 3, A, B, 'Hello', pi]
+varList.append('World')   # adds 'World' at the END
+print(varList)
+# (b) [1, 2, 3, 4, 5, 'Hello', 3.14159, 'World']`,"Note: list append() is not explained in the reviewer; learn it from the reviewer’s Python section (pp.20-23) plus class notes. Remember Python indentation and .py files (p.22)."]
+];
+const N={id:'Identification',mc:'Multiple Choice',tf:'True or False',pq:'Professor quiz',pr:'Problem Solving'};
+const DATA={
+ id:ID.map(([u,q,a,p])=>({u,q,a,p})),
+ mc:MC.map(([u,q,o,c,p])=>({u,q,o,c,p:'p.'+p})),
+ tf:TF.map(([u,q,t,w,p])=>({u,q,o:['True','False'],c:t?0:1,w,p:'p.'+p})),
+ pq:PQ.map(([q,o,c])=>({u:-1,q,o,c,p:'prof. quiz'}))};
+const $=id=>document.getElementById(id),sh=a=>[...a].sort(()=>Math.random()-.5),nz=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+const UN={all:'All units',0:'Unit 0 · History & Orientation',1:'Unit 1 · Robot concepts, MATLAB, linear algebra',2:'Unit 2 · Sensors, vision, Python',3:'Unit 3 · Grippers, C, GUI, Arduino, Industrial Rev.'};
+let S='all',Q=[],i=0,sc={},miss=[];
+const pool=t=>DATA[t].filter(x=>S==='all'||x.u==S);
+function home(){
+ $('stage').hidden=$('end').hidden=true;$('home').hidden=false;$('bar').style.width='0';$('cnt').textContent='';
+ const cnt=t=>pool(t).length;
+ $('home').innerHTML='<p><b>1. Choose scope</b></p>'+Object.keys(UN).map(k=>'<button class="set'+(S==k?' on':'')+'" onclick="S=\''+k+'\';home()"><b>'+UN[k]+'</b></button>').join('')
+ +'<p><b>2. Choose what to take</b></p>'
+ +'<button class="set" onclick="go([\'id\',\'mc\',\'tf\',\'pr\'],1)"><b>Exam simulation'+(S==='all'?' (40 ID · 20 MC · 20 T/F · 2 problems)':' (this unit’s items + problems)')+'</b></button>'
+ +'<button class="set" onclick="go([\'id\'])"><b>Identification drill · '+cnt('id')+' items</b><span>Abbreviations, inventors, pins, definitions</span></button>'
+ +'<button class="set" onclick="go([\'mc\'])"><b>Multiple choice only · '+cnt('mc')+' items</b></button>'
+ +'<button class="set" onclick="go([\'tf\'])"><b>True or False only · '+cnt('tf')+' items</b></button>'
+ +'<button class="set" onclick="go([\'pr\'])"><b>Problem solving only · 2 items</b><span>MATLAB worker’s pay + Python list</span></button>'
+ +'<button class="set" onclick="go([\'pq\'])"><b>Professor’s 15-item quiz</b><span>Not unit-filtered. Some topics are outside the reviewer.</span></button>';
+}
+function go(ks,exam){
+ Q=[];sc={id:0,mc:0,tf:0,pq:0};miss=[];i=0;
+ ks.forEach(k=>{if(k==='pr'){PR.forEach(x=>Q.push({k,x}));return}
+  let p=k==='pq'?DATA.pq:sh(pool(k));if(exam&&S==='all')p=p.slice(0,{id:40,mc:20,tf:20}[k]);p.forEach(x=>Q.push({k,x}))});
+ $('home').hidden=$('end').hidden=true;$('stage').hidden=false;show();
+}
+const got=()=>sc.id+sc.mc+sc.tf+sc.pq;
+function hdr(){$('cnt').textContent='Item '+(i+1)+' of '+Q.length+' · '+N[Q[i].k]+' · Score '+got()}
+function show(){
+ const {k,x}=Q[i];hdr();$('bar').style.width=(i/Q.length*100)+'%';$('fb').hidden=$('next').hidden=true;$('q').style.whiteSpace='';
+ const box=$('opts');box.innerHTML='';
+ if(k==='id'){
+  $('pg').textContent='Identification · '+UN[x.u].split(' ·')[0]+' · p.'+x.p;$('q').textContent=x.q;
+  box.innerHTML='<input id="a" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Type your answer"><button class="go" id="chk">Check</button>';
+  $('a').focus();$('chk').onclick=chkId;$('a').onkeydown=e=>{if(e.key==='Enter')chkId()};
+ }else if(k==='pr'){
+  $('pg').textContent=x[0];$('q').style.whiteSpace='pre-wrap';$('q').textContent=x[1];
+  box.innerHTML='<textarea placeholder="Write your answer here first…"></textarea><button class="go" id="rev">Show model answer</button>';
+  $('rev').onclick=()=>{const f=$('fb');f.hidden=false;f.innerHTML='<b>Model answer</b><pre></pre><p></p>';f.querySelector('pre').textContent=x[2];f.querySelector('p').textContent=x[3];nxt()};
+ }else{
+  $('pg').textContent=N[k]+(x.u>=0?' · '+UN[x.u].split(' ·')[0]:'')+' · '+x.p;$('q').textContent=x.q;
+  x.o.forEach((t,j)=>{const b=document.createElement('button');b.textContent=t;b.onclick=()=>pick(b,j);box.appendChild(b)});
+ }
+}
+function nxt(){$('next').hidden=false;$('next').textContent=i===Q.length-1?'See results':'Next';$('next').focus()}
+function chkId(){
+ const x=Q[i].x,u=nz($('a').value);if(!u)return;const al=x.a.split('|');
+ const ok=al.some(a=>{a=nz(a);return u===a||(a.length>6&&u.includes(a))});
+ $('a').disabled=$('chk').disabled=true;const f=$('fb');f.hidden=false;
+ if(ok){sc.id++;f.innerHTML='<b>✅ Correct!</b><p>Answer: '+al[0]+'</p>'}
+ else{const m={q:x.q,a:al[0],p:'p.'+x.p};miss.push(m);
+  f.innerHTML='<b>❌ Not quite.</b><p>Correct answer: <u>'+al[0]+'</u> (p.'+x.p+')</p><button class="go alt" id="ovr" style="margin:0">I was right (spelling/wording)</button>';
+  $('ovr').onclick=()=>{sc.id++;miss.splice(miss.indexOf(m),1);$('ovr').remove();hdr()}}
+ hdr();nxt();
+}
+function pick(b,j){
+ const {k,x}=Q[i],f=$('fb');
+ document.querySelectorAll('#opts button').forEach((e,n)=>{e.disabled=true;if(n===x.c)e.classList.add('ok')});f.hidden=false;
+ const w=x.w?' '+x.w:'';
+ if(j===x.c){sc[k]++;f.innerHTML='<b>✅ Correct!</b><p>'+x.o[x.c]+'.'+w+'</p>'}
+ else{b.classList.add('no');miss.push({q:x.q,a:x.o[x.c]+w,p:x.p});f.innerHTML='<b>❌ Not quite.</b><p>Correct answer: <u>'+x.o[x.c]+'</u>.'+w+'</p>'}
+ hdr();nxt();
+}
+$('next').onclick=()=>{i++;i>=Q.length?finish():show()};
+function finish(){
+ $('bar').style.width='100%';$('stage').hidden=true;$('end').hidden=false;
+ const ks=[...new Set(Q.map(e=>e.k))].filter(k=>k!=='pr'),cn=k=>Q.filter(e=>e.k===k).length,tot=ks.reduce((s,k)=>s+cn(k),0);
+ $('end').innerHTML='<h1>'+got()+' / '+tot+(tot?' ('+Math.round(got()/tot*100)+'%)':'')+'</h1>'
+ +ks.map(k=>'<p>'+N[k]+': <b>'+sc[k]+' / '+cn(k)+'</b></p>').join('')
+ +(Q.some(e=>e.k==='pr')?'<p>Problem solving: self-check against the model answers (10 pts each).</p>':'')
+ +(miss.length?'<p><b>Items you missed:</b></p><ul>'+miss.map(m=>'<li>'+m.q+' → <b>'+m.a+'</b> ('+m.p+')</li>').join('')+'</ul>':'<p>No mistakes. Perfect run.</p>')
+ +'<button class="go alt" style="margin:0" onclick="home()">Back to menu</button>';
+}
+home();
+</script></body></html>
